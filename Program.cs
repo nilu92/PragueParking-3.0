@@ -18,7 +18,7 @@ namespace PragueParking_3._0
 
         public void Run()
         {
-            RemoveFromDataBase();
+            CheckVehicleLocation();
         }
 
         public void AddVehicle()
@@ -91,13 +91,44 @@ namespace PragueParking_3._0
                         SqlCommand delete = new SqlCommand("Delete from fordon where ([regnumb] = '" + regnumb + "')", cn);
                         delete.ExecuteNonQuery();
                         Console.WriteLine("Vehicle removed");
-                        
+                        cn.Close();
                         
                     }
 
                 }
             }
 
+        
+        }
+        public void CheckVehicleLocation() 
+        {
+            SqlConnection cn = new SqlConnection(@"server = DESKTOP-E57017B\SQLEXPRESS; Database=Parking; Integrated Security=true");
+            cn.Open();
+            string regnumb;
+            Console.WriteLine("Enter regnumb");
+            regnumb = Console.ReadLine();
+            using (SqlCommand find_regnumb = new SqlCommand("SELECT COUNT(*) FROM fordon WHERE ([regnumb] = '" + regnumb + "')", cn)) 
+            {
+                if (find_regnumb.ExecuteScalar() != null) 
+                {
+                    int regnumbExist = (int)find_regnumb.ExecuteScalar();
+                    if(regnumbExist > 0) 
+                    {
+                        Console.WriteLine("regnumb:{0} " , regnumbExist);
+                        Console.ReadLine();
+                        cn.Close();
+                        //ask user what to do with vehicle
+                    }
+                    else
+                        if(regnumbExist < 0) 
+                    {
+                        Console.WriteLine("There is no regnumber found");
+                        CheckVehicleLocation();
+                    }
+                }
+
+
+            }
         }
     }
 }
