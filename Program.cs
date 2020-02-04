@@ -18,7 +18,7 @@ namespace PragueParking_3._0
    
         public void Run() 
         {
-            
+            AddVehicle();
         }
     
         public void AddVehicle() 
@@ -35,12 +35,26 @@ namespace PragueParking_3._0
             typeOfVehicle = Console.ReadLine();
             //Add function that checks if regnumb exist in table
             regnumb = Console.ReadLine();
-            
+          
             SqlCommand cmd = new SqlCommand("insert into fordon values('" + id + "','" + typeOfVehicle + "','" + regnumb + "','" + parkspot + "')", cn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            SqlDataReader rdr = cmd.ExecuteReader();
+            while (rdr.Read()) 
+            {
+                if(regnumb == rdr["regnumb"].ToString()) 
+                {
+                    Console.WriteLine("regnumb already exist");
+                    rdr.Close();
+                    cn.Close();
+                    AddVehicle();
+                }
+            
+            }
+           
             int i = cmd.ExecuteNonQuery();
             if (i > 0)
             {
-                Console.WriteLine("Insertion successful!");
+               Console.WriteLine("Insertion successful!");
             }
             cn.Close();
 
@@ -48,9 +62,7 @@ namespace PragueParking_3._0
    
         public void CheckForDuplicates() 
         {
-            SqlConnection cn = new SqlConnection(@"server = DESKTOP-E57017B\SQLEXPRESS; Database=Parking; Integrated Security=true");
-            cn.Open();
-
+            
         }
     
     }
