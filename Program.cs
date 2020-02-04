@@ -35,21 +35,34 @@ namespace PragueParking_3._0
             typeOfVehicle = Console.ReadLine();
             //Add function that checks if regnumb exist in table
             regnumb = Console.ReadLine();
-          
-            SqlCommand cmd = new SqlCommand("insert into fordon values('" + id + "','" + typeOfVehicle + "','" + regnumb + "','" + parkspot + "')", cn);
-            cmd.CommandType = CommandType.StoredProcedure;
-            SqlDataReader rdr = cmd.ExecuteReader();
-            while (rdr.Read()) 
+            using (SqlCommand check_regnumb = new SqlCommand("SELECT COUNT(*) FROM fordon WHERE ([regnumb] = '" + regnumb + "')", cn)) 
             {
-                if(regnumb == rdr["regnumb"].ToString()) 
+                if (check_regnumb.ExecuteScalar() != null) 
                 {
-                    Console.WriteLine("regnumb already exist");
-                    rdr.Close();
-                    cn.Close();
-                    AddVehicle();
+                    int regnumbExist = (int)check_regnumb.ExecuteScalar();
+                    if(regnumbExist > 0) 
+                    {
+                        Console.WriteLine("regnumber exist!");
+                        AddVehicle();
+                    }
+                    
                 }
-            
-            }
+                //SqlDataReader reader = check_regnumb.ExecuteReader();
+                //if (reader.HasRows) 
+                //{
+                //    Console.WriteLine("already exist");
+                //    AddVehicle();
+                //}
+                //else
+                //{
+                //    Console.WriteLine("does not exist");
+                //}
+                //reader.Close();
+                //reader.Dispose();
+            } 
+           
+            SqlCommand cmd = new SqlCommand("insert into fordon values('" + id + "','" + typeOfVehicle + "','" + regnumb + "','" + parkspot + "')", cn);
+           
            
             int i = cmd.ExecuteNonQuery();
             if (i > 0)
