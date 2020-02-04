@@ -48,8 +48,9 @@ namespace PragueParking_3._0
    
         public void CheckForDuplicates() 
         {
-            
-        
+            SqlConnection cn = new SqlConnection(@"server = DESKTOP-E57017B\SQLEXPRESS; Database=Parking; Integrated Security=true");
+            cn.Open();
+
         }
     
     }
