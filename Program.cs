@@ -13,15 +13,15 @@ namespace PragueParking_3._0
         static void Main(string[] args)
         {
             new Program().Run();
-           
+
         }
-   
-        public void Run() 
+
+        public void Run()
         {
-            AddVehicle();
+            RemoveFromDataBase();
         }
-    
-        public void AddVehicle() 
+
+        public void AddVehicle()
         {
 
             SqlConnection cn = new SqlConnection(@"server = DESKTOP-E57017B\SQLEXPRESS; Database=Parking; Integrated Security=true");
@@ -35,17 +35,17 @@ namespace PragueParking_3._0
             typeOfVehicle = Console.ReadLine();
             //Add function that checks if regnumb exist in table
             regnumb = Console.ReadLine();
-            using (SqlCommand check_regnumb = new SqlCommand("SELECT COUNT(*) FROM fordon WHERE ([regnumb] = '" + regnumb + "')", cn)) 
+            using (SqlCommand check_regnumb = new SqlCommand("SELECT COUNT(*) FROM fordon WHERE ([regnumb] = '" + regnumb + "')", cn))
             {
-                if (check_regnumb.ExecuteScalar() != null) 
+                if (check_regnumb.ExecuteScalar() != null)
                 {
                     int regnumbExist = (int)check_regnumb.ExecuteScalar();
-                    if(regnumbExist > 0) 
+                    if (regnumbExist > 0)
                     {
                         Console.WriteLine("regnumber exist!");
                         AddVehicle();
                     }
-                    
+
                 }
                 //SqlDataReader reader = check_regnumb.ExecuteReader();
                 //if (reader.HasRows) 
@@ -59,24 +59,45 @@ namespace PragueParking_3._0
                 //}
                 //reader.Close();
                 //reader.Dispose();
-            } 
-           
+            }
+
             SqlCommand cmd = new SqlCommand("insert into fordon values('" + id + "','" + typeOfVehicle + "','" + regnumb + "','" + parkspot + "')", cn);
-           
-           
+
+
             int i = cmd.ExecuteNonQuery();
             if (i > 0)
             {
-               Console.WriteLine("Insertion successful!");
+                Console.WriteLine("Insertion successful!");
             }
             cn.Close();
 
         }
-   
-        public void CheckForDuplicates() 
+
+        public void RemoveFromDataBase()
         {
-            
+            SqlConnection cn = new SqlConnection(@"server = DESKTOP-E57017B\SQLEXPRESS; Database=Parking; Integrated Security=true");
+            cn.Open();
+            string regnumb;
+            Console.WriteLine("Enter regnumb");
+            regnumb = Console.ReadLine();
+            using (SqlCommand check_regnumb = new SqlCommand("SELECT COUNT(*) FROM fordon WHERE ([regnumb] = '" + regnumb + "')", cn))
+            {
+                if (check_regnumb.ExecuteScalar() != null)
+                {
+                    int regnumbExist = (int)check_regnumb.ExecuteScalar();
+                    if (regnumbExist > 0)
+                    {
+                        Console.WriteLine("regnumber exist!");
+                        SqlCommand delete = new SqlCommand("Delete from fordon where ([regnumb] = '" + regnumb + "')", cn);
+                        delete.ExecuteNonQuery();
+                        Console.WriteLine("Vehicle removed");
+                        
+                        
+                    }
+
+                }
+            }
+
         }
-    
     }
 }
