@@ -3,132 +3,123 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Data;
 using System.Data.SqlClient;
 
-namespace PragueParking_3._0
+namespace PragueParking_3._1
 {
     class Program
     {
         static void Main(string[] args)
         {
-            new Program().Run();
 
-        }
-
-        public void Run()
-        {
-            CheckVehicleLocation();
-        }
-
-        public void AddVehicle()
-        {
-
-            SqlConnection cn = new SqlConnection(@"server = DESKTOP-E57017B\SQLEXPRESS; Database=Parking; Integrated Security=true");
+            SqlConnection cn = new SqlConnection(@"server=DESKTOP-E57017B\SQLEXPRESS; Database=PragueParking; Integrated Security= true" );
             cn.Open();
-            int id, parkspot;
-            string typeOfVehicle, regnumb;
-            Console.WriteLine("Enter id and parkspot");
-            id = int.Parse(Console.ReadLine());
-            parkspot = int.Parse(Console.ReadLine());
-            Console.WriteLine("Enter type and regnumb");
-            typeOfVehicle = Console.ReadLine();
-            //Add function that checks if regnumb exist in table
-            regnumb = Console.ReadLine();
-            using (SqlCommand check_regnumb = new SqlCommand("SELECT COUNT(*) FROM fordon WHERE ([regnumb] = '" + regnumb + "')", cn))
+            Console.WriteLine(" Server Connection : {0}",cn.State);
+            Console.ReadLine();
+           //TestVariabler ska sättas in i VehicleType i db PragueParking
+            int Id = 1;
+            int Size = 1;
+            
+            string regNumb = "123456";
+            string vehType = "Car";
+            using (SqlCommand check_regNumb = new SqlCommand("SELECT COUNT(*) FROM VehicleType WHERE ([regNumb]= '" + regNumb + "')",cn)) 
             {
-                if (check_regnumb.ExecuteScalar() != null)
+                if (check_regNumb.ExecuteScalar() != null) 
                 {
-                    int regnumbExist = (int)check_regnumb.ExecuteScalar();
-                    if (regnumbExist > 0)
+                    int regNumbExist = (int)check_regNumb.ExecuteScalar();
+                    if(regNumbExist > 0) 
                     {
-                        Console.WriteLine("regnumber exist!");
-                        AddVehicle();
+                        Console.WriteLine("ERROR: Regnumber already exist in database!");
+                        Console.ReadLine();
+                        System.Environment.Exit(1);
                     }
-
                 }
-                //SqlDataReader reader = check_regnumb.ExecuteReader();
-                //if (reader.HasRows) 
-                //{
-                //    Console.WriteLine("already exist");
-                //    AddVehicle();
-                //}
-                //else
-                //{
-                //    Console.WriteLine("does not exist");
-                //}
-                //reader.Close();
-                //reader.Dispose();
+            
             }
-
-            SqlCommand cmd = new SqlCommand("insert into fordon values('" + id + "','" + typeOfVehicle + "','" + regnumb + "','" + parkspot + "')", cn);
-
-
+                SqlCommand cmd = new SqlCommand("insert into VehicleType values('" + Id + "','" + vehType + "','" + Size + "','" + regNumb + "')", cn);
             int i = cmd.ExecuteNonQuery();
-            if (i > 0)
-            {
-                Console.WriteLine("Insertion successful!");
-            }
             cn.Close();
-
-        }
-
-        public void RemoveFromDataBase()
-        {
-            SqlConnection cn = new SqlConnection(@"server = DESKTOP-E57017B\SQLEXPRESS; Database=Parking; Integrated Security=true");
-            cn.Open();
-            string regnumb;
-            Console.WriteLine("Enter regnumb");
-            regnumb = Console.ReadLine();
-            using (SqlCommand check_regnumb = new SqlCommand("SELECT COUNT(*) FROM fordon WHERE ([regnumb] = '" + regnumb + "')", cn))
-            {
-                if (check_regnumb.ExecuteScalar() != null)
-                {
-                    int regnumbExist = (int)check_regnumb.ExecuteScalar();
-                    if (regnumbExist > 0)
-                    {
-                        Console.WriteLine("regnumber exist!");
-                        SqlCommand delete = new SqlCommand("Delete from fordon where ([regnumb] = '" + regnumb + "')", cn);
-                        delete.ExecuteNonQuery();
-                        Console.WriteLine("Vehicle removed");
-                        cn.Close();
-                        
-                    }
-
-                }
-            }
-
+            Console.WriteLine("Insertion succesfull!");
         
         }
-        public void CheckVehicleLocation() 
+    
+        public void AddVehicle() 
         {
-            SqlConnection cn = new SqlConnection(@"server = DESKTOP-E57017B\SQLEXPRESS; Database=Parking; Integrated Security=true");
+            SqlConnection cn = new SqlConnection(@"server=DESKTOP-E57017B\SQLEXPRESS; Database=PragueParking; Integrated Security= true");
             cn.Open();
-            string regnumb;
-            Console.WriteLine("Enter regnumb");
-            regnumb = Console.ReadLine();
-            using (SqlCommand find_regnumb = new SqlCommand("SELECT COUNT(*) FROM fordon WHERE ([regnumb] = '" + regnumb + "')", cn)) 
+            int Id, Size, parkSpot;
+            string regNumb, vehType;
+            Console.WriteLine("Enter Id");
+            string newId = Console.ReadLine();
+            int.TryParse(newId, out Id);
+            while(Id == 0 || Id > 100 || Id < 0) 
             {
-                if (find_regnumb.ExecuteScalar() != null) 
+                Console.WriteLine("Invalid Id");
+                int.TryParse(newId, out Id);
+                Console.Clear();
+            }
+            using (SqlCommand check_Id = new SqlCommand("SELECT COUNT(*) FROM vehicleType WHERE ([Id] = '"+Id+"')")) 
+            {
+                int IdExist = (int)check_Id.ExecuteScalar();
+                if(IdExist > 0) 
                 {
-                    int regnumbExist = (int)find_regnumb.ExecuteScalar();
-                    if(regnumbExist > 0) 
+                    Console.WriteLine("Error: Id already exist");
+                    cn.Close();
+                    Console.ReadLine();
+                    AddVehicle();
+                }
+            }
+            Console.WriteLine("Enter Size");
+            string newSize = Console.ReadLine();
+            int.TryParse(newSize, out Size);
+            
+            //lägga till rimlig constraint
+            Console.WriteLine(" Enter parkspot");
+            string newParkSpot = Console.ReadLine();
+            int.TryParse(newParkSpot, out parkSpot);
+            while(parkSpot == 0 || parkSpot > 100 || parkSpot < 0) 
+            {
+                Console.WriteLine("Invalid spot, choose a spot between 1 - 100");
+            }
+            Console.WriteLine("Enter type of Vehicle");
+            vehType = Console.ReadLine();
+            vehType.ToLower();
+            if(vehType == "MC" || vehType == "mc" || vehType == "m") 
+            {
+                Size = 1;
+            }else
+                if(vehType == "Car" || vehType == "car" || vehType == "c") 
+            {
+                Size = 2;
+            }
+            Console.WriteLine("Enter registration number");
+            regNumb = Console.ReadLine();
+            while(regNumb.Length != 6) 
+            {
+                Console.WriteLine("Invalid registration number! ");
+                regNumb = Console.ReadLine();
+            }
+            using (SqlCommand check_regNumb = new SqlCommand("SELECT COUNT(*) FROM VehicleType WHERE ([regNumb]= '" + regNumb + "')", cn))
+            {
+                while (check_regNumb.ExecuteScalar() != null)
+                {
+                    int regNumbExist = (int)check_regNumb.ExecuteScalar();
+                    if (regNumbExist > 0)
                     {
-                        Console.WriteLine("regnumb:{0} " , regnumbExist);
+                        Console.WriteLine("ERROR: Regnumber already exist in database!");
                         Console.ReadLine();
-                        cn.Close();
-                        //ask user what to do with vehicle
-                    }
-                    else
-                        if(regnumbExist < 0) 
-                    {
-                        Console.WriteLine("There is no regnumber found");
-                        CheckVehicleLocation();
+                        AddVehicle();
                     }
                 }
 
-
             }
+            SqlCommand cmd = new SqlCommand("insert into VehicleType values('" + Id + "','" + vehType + "','" + Size + "','" + regNumb + "')", cn);
+            int i = cmd.ExecuteNonQuery();
+            cn.Close();
+            Console.WriteLine("Insertion succesfull!");
+
         }
+    
+    
     }
 }
