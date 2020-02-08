@@ -24,8 +24,8 @@ namespace PragueParking_3._1
             con.Close();
             Console.ReadLine();
             */
-          
-           
+
+
             /* SqlConnection con = new SqlConnection(@"server=DESKTOP-E57017B\SQLEXPRESS; Database=PragueParking; Integrated Security= true");
              con.Open();
              SqlCommand insert = new SqlCommand("insert into Vehicleparkspot values('" + VehicleId + "','" + ParkspotId + "')", con);
@@ -72,34 +72,40 @@ namespace PragueParking_3._1
              Console.WriteLine("Insertion succesfull!");
              */
         }
-    
-        public void Run() 
+
+        public void Run()
         {
             AddVehicle();
-        
+
         }
-        public void AddVehicle() 
+        public void AddVehicle()
         {
             DateTime ArrivalTime = DateTime.Now;
             SqlConnection cn = new SqlConnection(@"server=DESKTOP-E57017B\SQLEXPRESS; Database=PragueParking; Integrated Security= true");
             cn.Open();
             Console.WriteLine(" Server Connection : {0}", cn.State);
             Console.ReadLine();
-            
+
             int Id, Size, parkSpot;
             string regNumb, vehType;
             Console.WriteLine("Enter Id");
-            Id = int.Parse(Console.ReadLine()); ;
-            
-            while(Id == 0 || Id > 100 || Id < 0) 
+            string newId = Console.ReadLine();
+            while (!int.TryParse(newId, out Id))
+            {
+                Console.WriteLine("Invalid Input!");
+                newId = Console.ReadLine();
+            }
+            // Id = int.Parse(Console.ReadLine()); ;
+
+            while (Id == 0 || Id > 100 || Id < 0)
             {
                 Console.WriteLine("Invalid Id");
                 Id = int.Parse(Console.ReadLine());
                 Console.Clear();
             }
-            using (SqlCommand check_Id = new SqlCommand("SELECT COUNT(*) FROM VehicleType WHERE ([Id] = '" + Id+"')",cn)) 
+            using (SqlCommand check_Id = new SqlCommand("SELECT COUNT(*) FROM VehicleType WHERE ([Id] = '" + Id + "')", cn))
             {
-                if (check_Id.ExecuteScalar()!=null) 
+                if (check_Id.ExecuteScalar() != null)
                 {
                     int IdExist = (int)check_Id.ExecuteScalar();
 
@@ -112,46 +118,70 @@ namespace PragueParking_3._1
                     }
 
                 }
-                
+
             }
-            
+
             Console.WriteLine("Enter Size");
             string newSize = Console.ReadLine();
-            while(!int.TryParse(newSize,out Size)) 
+            while (!int.TryParse(newSize, out Size))
             {
                 Console.WriteLine("Invalid Input!");
-               newSize = Console.ReadLine();
-              
+                newSize = Console.ReadLine();
+
             }
-            
-            
+
+
             //lägga till rimlig constraint
             Console.WriteLine(" Enter parkspot");
             //parkSpot = int.Parse(Console.ReadLine());
             string newparkspot = Console.ReadLine();
-            while(!int.TryParse(newparkspot, out parkSpot)) 
+           
+            
+            while (!int.TryParse(newparkspot, out parkSpot))
             {
                 Console.WriteLine("Invalid Input!");
                 newparkspot = Console.ReadLine();
             }
-            while(parkSpot == 0 || parkSpot > 100 || parkSpot < 0) 
+            while (parkSpot == 0 || parkSpot > 100 || parkSpot < 0)
             {
                 Console.WriteLine("Invalid spot, choose a spot between 1 - 100");
+                parkSpot = int.Parse(Console.ReadLine());
             }
+
+            using (SqlCommand checkSpot = new SqlCommand("select count(*) from ParkSpot where ([Id] = '" + parkSpot + "')", cn))
+            {
+                if(checkSpot.ExecuteScalar() != null) 
+                {
+                    int spotTaken = (int)checkSpot.ExecuteScalar();
+                    while(spotTaken == parkSpot) 
+                    {
+                        Console.WriteLine("Error: spot is taken!");
+                        parkSpot = int.Parse(Console.ReadLine());
+                    }
+                }
+            }
+
+
+            //Lägg till funktion som kollar om vald plats är upptagen.
             Console.WriteLine("Enter type of Vehicle");
             vehType = Console.ReadLine();
-            vehType.ToLower();
-            if(vehType == "MC" || vehType == "mc" || vehType == "m") 
+            vehType.ToUpper();
+            if (vehType == "MC" || vehType == "mc" || vehType == "m")
             {
                 Size = 1;
-            }else
-                if(vehType == "Car" || vehType == "car" || vehType == "c") 
+                Console.WriteLine("MC has the size of {0} Press enter to continue ", Size);
+                Console.ReadLine();
+            }
+            else
+                if (vehType == "Car" || vehType == "car" || vehType == "c")
             {
                 Size = 2;
+                Console.WriteLine("Car has the size of {0} Press enter to continue ", Size);
+                Console.ReadLine();
             }
             Console.WriteLine("Enter registration number");
             regNumb = Console.ReadLine();
-            if(regNumb.Length != 6) 
+            if (regNumb.Length != 6)
             {
                 Console.WriteLine("Invalid registration number! ");
                 regNumb = Console.ReadLine();
@@ -165,26 +195,25 @@ namespace PragueParking_3._1
                     {
                         Console.WriteLine("ERROR: Regnumber already exist in database!");
                         Console.ReadLine();
-                       // AddVehicle();
+                        // AddVehicle();
                     }
                 }
 
             }
+            
+                SqlCommand cmd = new SqlCommand("insert into VehicleType values('" + Id + "','" + vehType + "','" + Size + "','" + regNumb + "')", cn);
+                int i = cmd.ExecuteNonQuery();
+                Console.WriteLine("Insertion succesfull!");
+                Console.ReadLine();
+                ParkVehicle(Id, parkSpot);
+                TimeOfArrival(Id, ArrivalTime);
+                cn.Close();
 
-            SqlCommand cmd = new SqlCommand("insert into VehicleType values('" + Id + "','" + vehType + "','" + Size + "','" + regNumb + "')", cn);
-            int i = cmd.ExecuteNonQuery();
             
             
-            Console.WriteLine("Insertion succesfull!");
-            Console.ReadLine();
-            ParkVehicle(Id, parkSpot);
-            TimeOfArrival(Id,ArrivalTime);
-            cn.Close();
-            
-
 
         }
-        void TimeOfArrival(int Id, DateTime Arrival) 
+        void TimeOfArrival(int Id, DateTime Arrival)
         {
             int ArrivalId = Id;
             DateTime ArrivalTime = Arrival;
@@ -194,21 +223,38 @@ namespace PragueParking_3._1
             insert.ExecuteNonQuery();
             con.Close();
         }
-        void ParkVehicle(int Id, int parkSpot) 
+        void ParkVehicle(int Id, int parkSpot)
         {
             int VehicleId = Id;
             int ParkspotId = parkSpot;
             SqlConnection con = new SqlConnection(@"server=DESKTOP-E57017B\SQLEXPRESS; Database=PragueParking; Integrated Security= true");
             con.Open();
             Console.WriteLine(" Server Connection : {0}", con.State);
-            SqlCommand command = new SqlCommand("insert into ParkSpot values('"+VehicleId+"')",con);
+            SqlCommand command = new SqlCommand("insert into ParkSpot values('" + VehicleId + "')", con);
             command.ExecuteNonQuery();
-            Console.WriteLine("inserted {0}",parkSpot);
+            Console.WriteLine("inserted {0}", parkSpot);
             Console.ReadLine();
-            SqlCommand insert = new SqlCommand("insert into Vehicleparkspot values('"+VehicleId+"','"+ParkspotId+"')",con);
+            SqlCommand insert = new SqlCommand("insert into Vehicleparkspot values('" + VehicleId + "','" + ParkspotId + "')", con);
             insert.ExecuteNonQuery();
             con.Close();
             Console.WriteLine("jajamensean");
         }
+    
+        bool CheckIfSpotIsTaken(int parkSpot, string type) 
+        {
+            //Ska kolla om platsen är tagen och ifall det står en MC eller bil på platsen, det ska kunna stå 2st MC på en plats.
+            int checkpark = parkSpot;
+            string checkType = type;
+            SqlConnection con = new SqlConnection(@"server=DESKTOP-E57017B\SQLEXPRESS; Database=PragueParking; Integrated Security= true");
+            con.Open();
+            using (SqlCommand checkSpot = new SqlCommand("select count(*) from ParkSpot where ([Id] = '"+checkpark+"')",con)) 
+            {
+                
+            }
+
+                return true;
+        }
+    
+    
     }
 }
