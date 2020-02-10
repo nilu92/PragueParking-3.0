@@ -136,8 +136,8 @@ namespace PragueParking_3._1
             Console.WriteLine(" Enter parkspot");
             //parkSpot = int.Parse(Console.ReadLine());
             string newparkspot = Console.ReadLine();
-           
-            
+
+
             while (!int.TryParse(newparkspot, out parkSpot))
             {
                 Console.WriteLine("Invalid Input!");
@@ -151,10 +151,10 @@ namespace PragueParking_3._1
 
             using (SqlCommand checkSpot = new SqlCommand("select count(*) from ParkSpot where ([Id] = '" + parkSpot + "')", cn))
             {
-                if(checkSpot.ExecuteScalar() != null) 
+                if (checkSpot.ExecuteScalar() != null)
                 {
                     int spotTaken = (int)checkSpot.ExecuteScalar();
-                    while(spotTaken == parkSpot) 
+                    while (spotTaken == parkSpot)
                     {
                         Console.WriteLine("Error: spot is taken!");
                         parkSpot = int.Parse(Console.ReadLine());
@@ -181,7 +181,7 @@ namespace PragueParking_3._1
                 Console.ReadLine();
             }
             Console.WriteLine("Enter registration number");
-           
+
             regNumb = Console.ReadLine();
             bool CorrectUserInput;
             CorrectUserInput = CheckRegNumb(regNumb);
@@ -207,17 +207,17 @@ namespace PragueParking_3._1
                 }
 
             }
-            
-                SqlCommand cmd = new SqlCommand("insert into VehicleType values('" + Id + "','" + vehType + "','" + Size + "','" + regNumb + "')", cn);
-                int i = cmd.ExecuteNonQuery();
-                Console.WriteLine("Insertion succesfull!");
-                Console.ReadLine();
-                ParkVehicle(Id, parkSpot);
-                TimeOfArrival(Id, ArrivalTime);
-                cn.Close();
 
-            
-            
+            SqlCommand cmd = new SqlCommand("insert into VehicleType values('" + Id + "','" + vehType + "','" + Size + "','" + regNumb + "')", cn);
+            int i = cmd.ExecuteNonQuery();
+            Console.WriteLine("Insertion succesfull!");
+            Console.ReadLine();
+            ParkVehicle(Id, parkSpot);
+            TimeOfArrival(Id, ArrivalTime);
+            cn.Close();
+
+
+
 
         }
         void TimeOfArrival(int Id, DateTime Arrival)
@@ -246,8 +246,8 @@ namespace PragueParking_3._1
             con.Close();
             Console.WriteLine("jajamensean");
         }
-    
-        bool CheckRegNumb(string regnumber) 
+
+        bool CheckRegNumb(string regnumber)
         {
             string regNumb = regnumber;
             bool CorrectUserInput = false;
@@ -267,16 +267,10 @@ namespace PragueParking_3._1
                     //CorrectUserInput = true;
                     return true;
                 }
-
-               
-
             }
-            return false; 
-
-
-
+            return false;
         }
-         void SearchVehicle() 
+        void SearchVehicle()
         {
             string regNumb;
             /* int Id;
@@ -291,8 +285,8 @@ namespace PragueParking_3._1
             Console.WriteLine("Enter registration number!");
             regNumb = Console.ReadLine();
             bool CorrectUserInput;
-            CorrectUserInput =  CheckRegNumb(regNumb);
-            while (!CorrectUserInput) 
+            CorrectUserInput = CheckRegNumb(regNumb);
+            while (!CorrectUserInput)
             {
                 //CorrectUserInput = false;
                 Console.WriteLine("Invalid registration number, the registration numb must be longer than 3 and shorter than 10 ");
@@ -302,10 +296,10 @@ namespace PragueParking_3._1
             // kolla om regnumb finns i databas!
             //lägga till Using,try,catch för att undvika krasch vid felinmatning.
             //Arrival(regNumb);
-            
-            SqlCommand SelectWithReg = new SqlCommand("SELECT * FROM VehicleType WHERE([RegNumb])='"+regNumb+"' ", con);
+
+            SqlCommand SelectWithReg = new SqlCommand("SELECT * FROM VehicleType WHERE([RegNumb])='" + regNumb + "' ", con);
             SqlDataReader reader = SelectWithReg.ExecuteReader();
-            while (reader.Read()) 
+            while (reader.Read())
             {
                 string VehRegNumber = (string)reader["RegNumb"];
                 string VehType = (string)reader["VehType"];
@@ -313,64 +307,103 @@ namespace PragueParking_3._1
                 int Id = (int)reader["Id"];
                 DateTime ArrivalTime = Arrival(Id);
                 int parkSpot = GetparkSpot(Id);
-                Console.WriteLine("This is your car Regnumb: {0},VehType: {1}, Size : {2}, Id : {3}, DateofArrival : {4}, ParkSpot : {5}",VehRegNumber,VehType,Size,Id,ArrivalTime,parkSpot);
+                double totalCost = CalculateTheCost(VehType,ArrivalTime);
+                Console.WriteLine("This is your car Regnumb: {0},VehType: {1}, Size : {2}, Id : {3}, DateofArrival : {4}, ParkSpot : {5}, Current Price : {6}", VehRegNumber, VehType, Size, Id, ArrivalTime, parkSpot, totalCost);
                 Console.ReadLine();
             }
+            //Ange vad man vill göra med fordonet
             Console.WriteLine("OK");
             Console.ReadLine();
         }
-        
-        int GetparkSpot(int Id) 
+
+        double CalculateTheCost(string vehType, DateTime TimeOfArrival)
+        {
+            
+            string type = vehType;
+            DateTime ArrivalTime = TimeOfArrival;
+            TimeSpan TimeParked = DateTime.Now - Convert.ToDateTime(ArrivalTime);
+            double TimeSinceParked = Convert.ToInt32(TimeParked.TotalMinutes);
+            double totalCost = 0;
+            double CarPrice = 20;
+            double McPrice = 10;
+            if(TimeSinceParked > 5 && TimeSinceParked < 120) 
+            {
+                if(type == "mc") 
+                {
+                    totalCost = (int)McPrice * 2;
+                }
+                else 
+                {
+                    totalCost = (int)CarPrice * 2;
+                }
+            }
+            else if(TimeSinceParked >= 120) 
+            {
+                double parkedMinutes = Math.Abs(TimeSinceParked);
+                if (vehType == "mc")
+                {
+                    totalCost = Math.Ceiling((parkedMinutes / 60)) * (int)McPrice;
+                }
+                else 
+                {
+                    totalCost = Math.Ceiling((parkedMinutes / 60)) * (int)CarPrice;
+                }
+            }
+            
+            return totalCost;
+        }
+
+        int GetparkSpot(int Id)
         {
             int ParkspotId = Id;
             SqlConnection con = new SqlConnection(@"server=DESKTOP-E57017B\SQLEXPRESS; Database=PragueParking; Integrated Security= true");
             con.Open();
-            SqlCommand GetParkSpot = new SqlCommand("SELECT * FROM Vehicleparkspot WHERE([ParkspotId])='"+ParkspotId+"' ",con);
+            SqlCommand GetParkSpot = new SqlCommand("SELECT * FROM Vehicleparkspot WHERE([ParkspotId])='" + ParkspotId + "' ", con);
             SqlDataReader reader = GetParkSpot.ExecuteReader();
-            while (reader.Read()) 
+            while (reader.Read())
             {
                 int parkspot = (int)reader["ParkspotId"];
                 return parkspot;
-            
+
             }
             return 0;
         }
-        DateTime Arrival(int Id) 
+        DateTime Arrival(int Id)
         {
             int ArrivalId = Id;
             DateTime date = DateTime.Now;
             SqlConnection con = new SqlConnection(@"server=DESKTOP-E57017B\SQLEXPRESS; Database=PragueParking; Integrated Security= true");
             con.Open();
-            SqlCommand DateOfArrival = new SqlCommand("SELECT * FROM ARRIVAL Where([ArrivalId])='"+ArrivalId+"'",con);
+            SqlCommand DateOfArrival = new SqlCommand("SELECT * FROM ARRIVAL Where([ArrivalId])='" + ArrivalId + "'", con);
             SqlDataReader reader = DateOfArrival.ExecuteReader();
-            while (reader.Read()) 
+            while (reader.Read())
             {
                 DateTime arrive = (DateTime)reader["ArrivalTime"];
                 return arrive;
             }
-            if (!reader.Read()) 
+            if (!reader.Read())
             {
                 return date;
             }
             return date;
         }
-        
-        
-        bool CheckIfSpotIsTaken(int parkSpot, string type) 
+
+
+        bool CheckIfSpotIsTaken(int parkSpot, string type)
         {
             //Ska kolla om platsen är tagen och ifall det står en MC eller bil på platsen, det ska kunna stå 2st MC på en plats.
             int checkpark = parkSpot;
             string checkType = type;
             SqlConnection con = new SqlConnection(@"server=DESKTOP-E57017B\SQLEXPRESS; Database=PragueParking; Integrated Security= true");
             con.Open();
-            using (SqlCommand checkSpot = new SqlCommand("select count(*) from ParkSpot where ([Id] = '"+checkpark+"')",con)) 
+            using (SqlCommand checkSpot = new SqlCommand("select count(*) from ParkSpot where ([Id] = '" + checkpark + "')", con))
             {
-                
+
             }
 
-                return true;
+            return true;
         }
-    
-    
+
+
     }
 }
