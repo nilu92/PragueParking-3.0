@@ -312,14 +312,29 @@ namespace PragueParking_3._1
                 int Size = (int)reader["Size"];
                 int Id = (int)reader["Id"];
                 DateTime ArrivalTime = Arrival(Id);
-                Console.WriteLine("This is your car Regnumb: {0},VehType: {1}, Size : {2}, Id : {3}, DateofArrival : {4}",VehRegNumber,VehType,Size,Id,ArrivalTime);
-                //Close connection
+                int parkSpot = GetparkSpot(Id);
+                Console.WriteLine("This is your car Regnumb: {0},VehType: {1}, Size : {2}, Id : {3}, DateofArrival : {4}, ParkSpot : {5}",VehRegNumber,VehType,Size,Id,ArrivalTime,parkSpot);
                 Console.ReadLine();
             }
             Console.WriteLine("OK");
             Console.ReadLine();
         }
         
+        int GetparkSpot(int Id) 
+        {
+            int ParkspotId = Id;
+            SqlConnection con = new SqlConnection(@"server=DESKTOP-E57017B\SQLEXPRESS; Database=PragueParking; Integrated Security= true");
+            con.Open();
+            SqlCommand GetParkSpot = new SqlCommand("SELECT * FROM Vehicleparkspot WHERE([ParkspotId])='"+ParkspotId+"' ",con);
+            SqlDataReader reader = GetParkSpot.ExecuteReader();
+            while (reader.Read()) 
+            {
+                int parkspot = (int)reader["ParkspotId"];
+                return parkspot;
+            
+            }
+            return 0;
+        }
         DateTime Arrival(int Id) 
         {
             int ArrivalId = Id;
