@@ -75,7 +75,8 @@ namespace PragueParking_3._1
 
         public void Run()
         {
-            AddVehicle();
+            SearchVehicle();
+            // AddVehicle();
 
         }
         public void AddVehicle()
@@ -180,12 +181,18 @@ namespace PragueParking_3._1
                 Console.ReadLine();
             }
             Console.WriteLine("Enter registration number");
+           
             regNumb = Console.ReadLine();
-            if (regNumb.Length != 6)
+            bool CorrectUserInput;
+            CorrectUserInput = CheckRegNumb(regNumb);
+            while (!CorrectUserInput)
             {
-                Console.WriteLine("Invalid registration number! ");
+                //CorrectUserInput = false;
+                Console.WriteLine("Invalid registration number, the registration numb must be longer than 3 and shorter than 10 ");
                 regNumb = Console.ReadLine();
+                CorrectUserInput = CheckRegNumb(regNumb);
             }
+
             using (SqlCommand check_regNumb = new SqlCommand("SELECT COUNT(*) FROM VehicleType WHERE ([regNumb]= '" + regNumb + "')", cn))
             {
                 if (check_regNumb.ExecuteScalar() != null)
@@ -240,6 +247,100 @@ namespace PragueParking_3._1
             Console.WriteLine("jajamensean");
         }
     
+        bool CheckRegNumb(string regnumber) 
+        {
+            string regNumb = regnumber;
+            bool CorrectUserInput = false;
+            while (CorrectUserInput == false)
+            {
+
+                if (regNumb.Length < 3 || regNumb.Length > 10)
+                {
+                    return false;
+                    /*CorrectUserInput = false;
+                    Console.WriteLine("Invalid registration number, the registration numb ");
+                    regNumb = Console.ReadLine();
+                */
+                }
+                else
+                {
+                    //CorrectUserInput = true;
+                    return true;
+                }
+
+               
+
+            }
+            return false; 
+
+
+
+        }
+         void SearchVehicle() 
+        {
+            string regNumb;
+            /* int Id;
+             int Size;
+             DateTime ArrivalTime;
+             */
+            SqlConnection con = new SqlConnection(@"server=DESKTOP-E57017B\SQLEXPRESS; Database=PragueParking; Integrated Security= true");
+            con.Open();
+            //Söka med registration number.
+            // få information ID,parkspot,Size,ArrivalTime, pris
+            //Användaren väljer vad man vill göra med det angivna fordonet
+            Console.WriteLine("Enter registration number!");
+            regNumb = Console.ReadLine();
+            bool CorrectUserInput;
+            CorrectUserInput =  CheckRegNumb(regNumb);
+            while (!CorrectUserInput) 
+            {
+                //CorrectUserInput = false;
+                Console.WriteLine("Invalid registration number, the registration numb must be longer than 3 and shorter than 10 ");
+                regNumb = Console.ReadLine();
+                CorrectUserInput = CheckRegNumb(regNumb);
+            }
+            // kolla om regnumb finns i databas!
+            //lägga till Using,try,catch för att undvika krasch vid felinmatning.
+            //Arrival(regNumb);
+            
+            SqlCommand SelectWithReg = new SqlCommand("SELECT * FROM VehicleType WHERE([RegNumb])='"+regNumb+"' ", con);
+            SqlDataReader reader = SelectWithReg.ExecuteReader();
+            while (reader.Read()) 
+            {
+                string VehRegNumber = (string)reader["RegNumb"];
+                string VehType = (string)reader["VehType"];
+                int Size = (int)reader["Size"];
+                int Id = (int)reader["Id"];
+                DateTime ArrivalTime = Arrival(Id);
+                Console.WriteLine("This is your car Regnumb: {0},VehType: {1}, Size : {2}, Id : {3}, DateofArrival : {4}",VehRegNumber,VehType,Size,Id,ArrivalTime);
+                //Close connection
+                Console.ReadLine();
+            }
+            Console.WriteLine("OK");
+            Console.ReadLine();
+        }
+        
+        DateTime Arrival(int Id) 
+        {
+            int ArrivalId = Id;
+            DateTime date = DateTime.Now;
+            SqlConnection con = new SqlConnection(@"server=DESKTOP-E57017B\SQLEXPRESS; Database=PragueParking; Integrated Security= true");
+            con.Open();
+            SqlCommand DateOfArrival = new SqlCommand("SELECT * FROM ARRIVAL Where([ArrivalId])='"+ArrivalId+"'",con);
+            SqlDataReader reader = DateOfArrival.ExecuteReader();
+            while (reader.Read()) 
+            {
+                DateTime arrive = (DateTime)reader["ArrivalTime"];
+                return arrive;
+            }
+            if (!reader.Read()) 
+            {
+                return date;
+            }
+            return date;
+        }
+        
+        
         bool CheckIfSpotIsTaken(int parkSpot, string type) 
         {
             //Ska kolla om platsen är tagen och ifall det står en MC eller bil på platsen, det ska kunna stå 2st MC på en plats.
